@@ -76,25 +76,36 @@ def load_db():
 model = load_model()
 collection = load_db()
 
+# ---------- CHUNKING ----------
+def chunk_text(text, chunk_size=800, overlap=150):
+    chunks = []
+    for i in range(0, len(text), chunk_size - overlap):
+        chunk = text[i:i+chunk_size].strip()
+        if len(chunk) > 50:
+            chunks.append(chunk)
+    return chunks
+
 # ---------- PDF PROCESS ----------
 def process_pdfs(files):
     all_chunks, all_embeddings, all_ids, all_metadata = [], [], [], []
 
     for file in files:
+        file.seek(0)
         reader = PdfReader(file)
         text = ""
 
         for page in reader.pages:
-            if page.extract_text():
-                text += page.extract_text()
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text + "\n"
 
-        chunk_size = 800
-        overlap = 150
+        # 🔥 DEBUG START
+        print("\n\n----- DEBUG TEXT START -----\n")
+        print(text[:1000])
+        print("\n----- DEBUG TEXT END -----\n\n")
+        # 🔥 DEBUG END
 
-        chunks = [
-            text[i:i+chunk_size]
-            for i in range(0, len(text), chunk_size - overlap)
-        ]
+        chunks = chunk_text(text)
 
         embeddings = model.encode(chunks)
 
@@ -158,7 +169,7 @@ tab1, tab2 = st.tabs(["💬 Chat", "📄 Documents"])
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# ---------- CHAT TAB ----------
+# ---------- CHAT ----------
 with tab1:
 
     if not st.session_state.messages:
@@ -191,18 +202,16 @@ with tab1:
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
 
-                is_definition = any(word in question.lower()
-                                    for word in ["what is", "define", "explain"])
-
                 module_match = re.search(r"module\s*(\d+)", question.lower())
                 module_number = module_match.group(1) if module_match else None
 
+                # ---------- RETRIEVAL ----------
                 if module_number:
                     search_query = f"module {module_number} data structures topics"
                     n_results = 10
                 else:
                     search_query = question
-                    n_results = 4
+                    n_results = 6
 
                 embedding = model.encode([search_query])[0]
 
@@ -214,6 +223,8 @@ with tab1:
                 documents = results["documents"][0]
                 metadatas = results["metadatas"][0]
 
+                documents = [d for d in documents if d.strip()]
+
                 if module_number:
                     filtered = [
                         d for d in documents
@@ -224,37 +235,19 @@ with tab1:
                 else:
                     context = "\n".join(documents)
 
-                if module_number and not context.strip():
-                    answer = f"I could not find Module {module_number} content in the document."
-                    st.markdown(answer)
-
-                else:
-
-                    if is_definition:
-                        prompt = f"""
+                # ---------- PROMPT ----------
+                prompt = f"""
 You are an AI assistant.
 
-First try to answer using ONLY the provided context.
+STRICT RULES:
 
-If not enough information:
-- Provide general answer
-- Mention: "This part is based on general knowledge"
+1. Answer using ONLY the provided context.
+2. If the answer is present in the context → answer clearly.
+3. If the answer is NOT present → say:
+   "I could not find this information in the document."
 
-Context:
-{context}
-
-Question:
-{question}
-"""
-                    else:
-                        prompt = f"""
-Extract ONLY MAIN TOPIC NAMES.
-
-Rules:
-- 1–3 words per topic
-- No explanations
-- No duplicates
-- Bullet points only
+4. DO NOT use outside knowledge.
+5. DO NOT add extra explanations beyond the context.
 
 Context:
 {context}
@@ -263,36 +256,36 @@ Question:
 {question}
 """
 
-                    response = ollama.chat(
-                        model="llama3.1",
-                        messages=[{"role": "user", "content": prompt}],
-                        stream=True
-                    )
+                response = ollama.chat(
+                    model="llama3.1",
+                    messages=[{"role": "user", "content": prompt}],
+                    stream=True
+                )
 
-                    full = ""
-                    placeholder = st.empty()
+                full = ""
+                placeholder = st.empty()
 
-                    for chunk in response:
-                        content = chunk["message"]["content"]
-                        full += content
-                        placeholder.markdown(full)
+                for chunk in response:
+                    content = chunk["message"]["content"]
+                    full += content
+                    placeholder.markdown(full)
 
-                    answer = full
+                answer = full
 
-                    # Show sources only if from context
-                    if context.strip() and len(documents) > 0:
-                        st.markdown("### Sources")
+                # ---------- SOURCES ----------
+                if "general knowledge" not in answer.lower() and context.strip():
+                    st.markdown("### Sources")
 
-                        for i, doc in enumerate(documents):
-                            preview = doc[:200].replace("\n", " ") + "..."
-                            source_name = metadatas[i]["source"]
+                    for i, doc in enumerate(documents):
+                        preview = doc[:200].replace("\n", " ") + "..."
+                        source_name = metadatas[i]["source"]
 
-                            st.markdown(f"""
-                            <div class="source-card">
-                            <b>{source_name}</b><br>
-                            {preview}
-                            </div>
-                            """, unsafe_allow_html=True)
+                        st.markdown(f"""
+                        <div class="source-card">
+                        <b>{source_name}</b><br>
+                        {preview}
+                        </div>
+                        """, unsafe_allow_html=True)
 
         st.session_state.messages.append({
             "role": "assistant",
