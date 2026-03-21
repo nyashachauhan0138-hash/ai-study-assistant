@@ -8,8 +8,8 @@ An AI-powered document assistant that enables users to interact with PDFs using 
 
 * 📄 Upload and query multiple PDFs
 * 🔍 Semantic search using embeddings
-* 🧠 Context-aware answers from documents
-* ⚖️ Smart fallback to general knowledge when needed
+* 🧠 Context-aware answers strictly grounded in documents
+* 🚫 Hallucination control with deterministic fallback ("not found")
 * 💬 Chat-based interface (Streamlit)
 * 📌 Source attribution for transparency
 
@@ -17,12 +17,12 @@ An AI-powered document assistant that enables users to interact with PDFs using 
 
 ## 🧠 How It Works
 
-1. PDFs are parsed and split into chunks
+1. PDFs are parsed and split into overlapping chunks
 2. Chunks are converted into embeddings using Sentence Transformers
 3. Stored in a vector database (ChromaDB)
-4. User query → converted to embedding
-5. Relevant chunks retrieved
-6. LLM (Llama 3.1 via Ollama) generates answer using context
+4. User query → converted into embedding
+5. Top relevant chunks retrieved
+6. LLM (Llama 3.1 via Ollama) generates answer **strictly from context**
 
 ---
 
@@ -47,22 +47,23 @@ streamlit run app.py
 
 ## ⚠️ Notes
 
-* Upload your own PDFs to query
-* Local LLM required (Ollama installed)
-* No external APIs used
+* Works best with **text-based PDFs** (not scanned documents)
+* Requires **Ollama installed locally**
+* No external APIs used (fully local setup)
 
 ---
 
 ## 🎯 Future Improvements
 
-* Better document filtering
+* OCR support for scanned PDFs
+* Improved document filtering
 * Multi-file context separation
 * UI enhancements
 * Deployment (Streamlit Cloud / Docker)
 
 ---
- 
- ## 📸 Demo
+
+## 📸 Demo
 
 ![App Screenshot](demo.png)
 
@@ -70,5 +71,5 @@ streamlit run app.py
 
 ## 👤 Author
 
-**Nyasha Chauhan**    
+**Nyasha Chauhan**
 AI/ML Engineer | Building Intelligent Systems
