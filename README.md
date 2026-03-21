@@ -64,5 +64,5 @@ streamlit run app.py
 
 ## 👤 Author
 
-Nyasha Chauhan
+**Nyasha Chauhan**    
 AI/ML Engineer | Building Intelligent Systems
