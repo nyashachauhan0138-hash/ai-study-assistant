@@ -61,6 +61,12 @@ streamlit run app.py
 * Deployment (Streamlit Cloud / Docker)
 
 ---
+ 
+ ## 📸 Demo
+
+![App Screenshot](demo.png)
+
+---
 
 ## 👤 Author
 
