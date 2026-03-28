@@ -1,76 +1,93 @@
-# AI Study Assistant
+# LumiAI
 
-An AI-powered document assistant that enables users to interact with PDFs using **Retrieval-Augmented Generation (RAG)**.
+A personal AI study assistant that runs entirely on your machine. Drop in your PDFs — textbooks, lecture notes, research papers — and start asking questions, generating quizzes, or building study notes without touching the internet.
 
----
-
-## 🚀 Features
-
-* 📄 Upload and query multiple PDFs
-* 🔍 Semantic search using embeddings
-* 🧠 Context-aware answers strictly grounded in documents
-* 🚫 Hallucination control with deterministic fallback ("not found")
-* 💬 Chat-based interface (Streamlit)
-* 📌 Source attribution for transparency
+I built this because most RAG demos stop at a chat interface. LumiAI goes a bit further: it lets you actually study with your documents, not just search them.
 
 ---
 
-## 🧠 How It Works
+## What it does
 
-1. PDFs are parsed and split into overlapping chunks
-2. Chunks are converted into embeddings using Sentence Transformers
-3. Stored in a vector database (ChromaDB)
-4. User query → converted into embedding
-5. Top relevant chunks retrieved
-6. LLM (Llama 3.1 via Ollama) generates answer **strictly from context**
+**Chat** — Ask questions about your uploaded PDFs. Answers are pulled directly from your documents, with sources shown below each response.
 
----
+**Documents** — A quick overview of everything indexed: how many files, how many chunks, ready status.
 
-## 🛠 Tech Stack
+**Quiz** — Pick a topic and difficulty, and the app generates multiple choice questions from your material. Answers are scored and explained at the end.
 
-* **Frontend**: Streamlit
-* **LLM**: Llama 3.1 (Ollama)
-* **Embeddings**: Sentence Transformers (MiniLM)
-* **Vector DB**: ChromaDB
-* **Language**: Python
+**Notes** — Generate structured study notes in different formats (Cornell, Mind Map, Exam Cram, etc.) and download them as a clean PDF.
 
 ---
 
-## ▶️ Run Locally
+## Stack
+
+- [Streamlit](https://streamlit.io) — UI
+- [Llama 3.1](https://ollama.com/library/llama3.1) via [Ollama](https://ollama.com) — LLM
+- [sentence-transformers](https://www.sbert.net) (`all-MiniLM-L6-v2`) — embeddings
+- [ChromaDB](https://www.trychroma.com) — local vector store
+- [PyMuPDF](https://pymupdf.readthedocs.io) — PDF text extraction
+- [ReportLab](https://www.reportlab.com) — PDF export for notes
+
+---
+
+## Setup
+
+You'll need Python 3.9+ and [Ollama](https://ollama.com) installed.
 
 ```bash
+# Pull the model
+ollama pull llama3.1
+
+# Clone and install
+git clone https://github.com/nyashachauhan0138-hash/ai-study-assistant.git
+cd ai-study-assistant
 pip install -r requirements.txt
+
+# Run
 streamlit run app.py
+```
+
+Open [http://localhost:8501](http://localhost:8501) and you're good to go.
+
+---
+
+## Project structure
+
+```
+ai-study-assistant/
+├── app.py              # everything lives here
+├── requirements.txt
+├── README.md
+└── chroma_db/          # created automatically on first run
 ```
 
 ---
 
-## ⚠️ Notes
+## Tweakable settings
 
-* Works best with **text-based PDFs** (not scanned documents)
-* Requires **Ollama installed locally**
-* No external APIs used (fully local setup)
+These are all at the top of `app.py` if you want to experiment:
 
----
-
-## 🎯 Future Improvements
-
-* OCR support for scanned PDFs
-* Improved document filtering
-* Multi-file context separation
-* UI enhancements
-* Deployment (Streamlit Cloud / Docker)
+| Setting | Default | Notes |
+|---|---|---|
+| LLM model | `llama3.1` | swap for any Ollama model |
+| Embedding model | `all-MiniLM-L6-v2` | good balance of speed vs quality |
+| Chunk size | `800` chars | smaller = more precise retrieval |
+| Chunk overlap | `150` chars | helps with context across boundaries |
+| ChromaDB path | `./chroma_db` | change if you want a shared store |
 
 ---
 
-## 📸 Demo
+## Privacy
 
-![App Screenshot](demo.png)
+Everything runs locally. No API keys, no data leaving your machine. Your documents stay yours.
 
 ---
 
-## 👤 Author
+## License
 
-**Nyasha Chauhan**
+MIT
 
-AI/ML Engineer | Building Intelligent Systems
+---
+
+## Author
+
+**Nyasha Chauhan** — [@nyashachauhan0138-hash](https://github.com/nyashachauhan0138-hash)
