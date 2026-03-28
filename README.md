@@ -6,6 +6,20 @@ I built this because most RAG demos stop at a chat interface. LumiAI goes a bit 
 
 ---
 
+## Screenshots
+
+
+### Chat
+![Chat](./screenshots/chat.png)
+
+### Quiz
+![Quiz](./screenshots/quiz.png)
+
+### Notes
+![Notes](./screenshots/notes.png)
+
+---
+
 ## What it does
 
 **Chat** — Ask questions about your uploaded PDFs. Answers are pulled directly from your documents, with sources shown below each response.
